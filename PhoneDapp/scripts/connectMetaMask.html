@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MetaMask Connection Example</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js" type="text/javascript"></script>
+</head>
+<body>
+    <button id="connectBtn">Connect MetaMask</button>
+
+    <script>
+        const connectMetaMask = async () => {
+            if (typeof window.ethereum !== "undefined") {
+                try {
+                    // Request account access
+                    await window.ethereum.request({ method: "eth_requestAccounts" });
+
+                    // Create a new Ethers.js provider using MetaMask as the connection
+                    const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+                    // Get the signer from the provider
+                    const signer = provider.getSigner();
+
+                    // Get the connected account's address
+                    const address = await signer.getAddress();
+                    console.log("Connected account:", address);
+
+                    return { provider, signer };
+                } catch (error) {
+                    console.error("User denied account access:", error);
+                }
+            } else {
+                console.error("MetaMask is not installed");
+            }
+        };
+
+        document.getElementById("connectBtn").addEventListener("click", connectMetaMask);
+    </script>
+</body>
+</html>

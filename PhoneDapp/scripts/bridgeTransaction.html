@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERC20 Transfer with Ether</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js" type="text/javascript"></script>
+</head>
+<body>
+    <button id="connectBtn">Connect MetaMask</button>
+    <button id="transferBtn" disabled>Transfer ERC20 & Ether</button>
+
+    <script>
+        let signer;
+
+        const connectMetaMask = async () => {
+            if (typeof window.ethereum !== "undefined") {
+                try {
+                    // Request account access
+                    await window.ethereum.request({ method: "eth_requestAccounts" });
+
+                    // Create a new Ethers.js provider using MetaMask as the connection
+                    const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+                    // Get the signer from the provider
+                    signer = provider.getSigner();
+
+                    // Enable the transfer button
+                    document.getElementById("transferBtn").disabled = false;
+                } catch (error) {
+                    console.error("User denied account access:", error);
+                }
+            } else {
+                console.error("MetaMask is not installed");
+            }
+        };
+
+        const transfer = async () => {
+            // Replace with your deployed smart contract address
+            const contractAddress = "0x...";
+
+            // Replace with the ERC20 token contract address you want to transfer
+            const tokenAddress = "0x...";
+
+            // The ABI of the EtherAndTokenReceiver contract
+            const contractAbi = [ /* ... */ ];
+
+            // The ABI of the ERC20 token contract with the `approve` function
+            const erc20Abi = [ /* ... */ ];
+
+            // The amount of ERC20 tokens to transfer (in the smallest unit)
+            const tokenAmount = ethers.utils.parseUnits("1", 18);
+
+            // The amount of Ether to transfer (in wei)
+            const etherAmount = ethers.utils.parseEther("0.1");
+
+            // Create instances of the contracts
+            const receiverContract = new ethers.Contract(contractAddress, contractAbi, signer);
+            const tokenContract = new ethers.Contract(tokenAddress, erc20Abi, signer);
+
+            try {
+                // Approve the smart contract to transfer the ERC20 tokens on behalf of the user
+                const approveTx = await tokenContract.approve(contractAddress, tokenAmount);
+                await approveTx.wait();
+
+                // Call the depositERC20 function on the smart contract
+                const depositTx = await receiverContract.depositERC20(tokenAddress, tokenAmount, { value: etherAmount });
+                await depositTx.wait();
+
+                console.log("Transfer successful");
+            } catch (error) {
+                console.error("Transfer failed:", error);
+            }
+        };
+
+        document.getElementById("connectBtn").addEventListener("click", connectMetaMask);
+        document.getElementById("transferBtn").addEventListener("click", transfer);
+    </script>
+</body>
+</html>
